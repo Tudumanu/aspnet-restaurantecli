@@ -5,7 +5,7 @@ Verifique o endereço da API nas configurações em *Web.config* > `key="APIUrl"`
 Principais arquivos criados:
 
 * Models/ > Garcom.cs, Pedido.cs, Restaurante.cs (para ajudar no data-binding, nenhum BD é utilizado)
-* Controllers/ > GarcomsController.cs, PedidoesController.cs, RestaurantesController.cs
+* Controllers/ > GarcomsController.cs, PedidoesController.cs, RestaurantesController.cs e HomeController.cs
 * Views/ > Todos arquivos
 
 #### Fontes de pesquisa:
