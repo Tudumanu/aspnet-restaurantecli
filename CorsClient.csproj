@@ -191,6 +191,7 @@
     <Content Include="Views\Pedidoes\Details.cshtml" />
     <Content Include="Views\Pedidoes\Edit.cshtml" />
     <Content Include="Views\Pedidoes\Index.cshtml" />
+    <Content Include="Views\Home\Relatorio.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
