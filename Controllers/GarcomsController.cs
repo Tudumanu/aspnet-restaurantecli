@@ -72,8 +72,8 @@ namespace CorsClient.Controllers
             return HttpNotFound();
         }
 
-        // GET: Garcoms/Create
-        public async Task<ActionResult> Create()
+        //PRIVATE HELPER TO GET RESTAURANTS
+        private async Task<IEnumerable<Restaurante>> getRestaurantes()
         {
             using (var client = new HttpClient())
             {
@@ -81,16 +81,27 @@ namespace CorsClient.Controllers
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                // HTTP GET
+                // HTTP GET restaurante
                 HttpResponseMessage response = await client.GetAsync("restaurante");
                 if (response.IsSuccessStatusCode)
                 {
                     var tmpData = await response.Content.ReadAsStringAsync();
-                    var restaurantes = JsonConvert.DeserializeObject<IEnumerable<Restaurante>>(tmpData);
-                    ViewBag.RestauranteId = new SelectList(restaurantes, "Id", "Nome");
-                    return View();
+                    return JsonConvert.DeserializeObject<IEnumerable<Restaurante>>(tmpData);                    
                 }
 
+            }
+
+            return null;
+        }
+
+        // GET: Garcoms/Create
+        public async Task<ActionResult> Create()
+        {
+            var restaurantes = await getRestaurantes();
+            if (restaurantes != null)
+            {
+                ViewBag.RestauranteId = new SelectList(restaurantes, "Id", "Nome");
+                return View();
             }
 
             return HttpNotFound();
@@ -125,6 +136,24 @@ namespace CorsClient.Controllers
             }
 
 
+            var restaurantes = await getRestaurantes();
+            if (restaurantes != null)
+            {
+                ViewBag.RestauranteId = new SelectList(restaurantes, "Id", "Nome", garcom.RestauranteId);
+                return View(garcom);
+            }
+
+            return HttpNotFound();            
+        }
+
+        // GET: Garcoms/Edit/5
+        public async Task<ActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
             using (var client = new HttpClient())
             {
                 client.BaseAddress = APIUri;
@@ -132,37 +161,26 @@ namespace CorsClient.Controllers
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 // HTTP GET
-                HttpResponseMessage response = await client.GetAsync("restaurante");
+                HttpResponseMessage response = await client.GetAsync("garcom/" + id.ToString());
                 if (response.IsSuccessStatusCode)
                 {
                     var tmpData = await response.Content.ReadAsStringAsync();
-                    var restaurantes = JsonConvert.DeserializeObject<IEnumerable<Restaurante>>(tmpData);
-                    ViewBag.RestauranteId = new SelectList(restaurantes, "Id", "Nome", garcom.RestauranteId);
-                    return View(garcom);
+                    var garcom = JsonConvert.DeserializeObject<Garcom>(tmpData);
+
+
+                    var restaurantes = await getRestaurantes();
+                    if (restaurantes != null)
+                    {
+                        ViewBag.RestauranteId = new SelectList(restaurantes, "Id", "Nome", garcom.RestauranteId);
+                        return View(garcom);
+                    }
                 }
 
             }
 
             return HttpNotFound();
-            
         }
-
-        // GET: Garcoms/Edit/5
-        /*public async Task<ActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Garcom garcom = db.Garcoms.Find(id);
-            if (garcom == null)
-            {
-                return HttpNotFound();
-            }
-            ViewBag.RestauranteId = new SelectList(db.Restaurantes, "Id", "Nome", garcom.RestauranteId);
-            return View(garcom);
-        }
-
+        
         // POST: Garcoms/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -172,14 +190,34 @@ namespace CorsClient.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Entry(garcom).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            ViewBag.RestauranteId = new SelectList(db.Restaurantes, "Id", "Nome", garcom.RestauranteId);
-            return View(garcom);
-        }
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = APIUri;
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                    // HTTP PUT
+                    var tmpData = JsonConvert.SerializeObject(garcom);
+                    HttpResponseMessage response = await client.PutAsync("garcom/" + garcom.Id.ToString(), new StringContent(tmpData, Encoding.UTF8, "application/json"));
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return RedirectToAction("Index");
+                    }
+                }
+
+                return HttpNotFound();
+            }
+
+            var restaurantes = await getRestaurantes();
+            if (restaurantes != null)
+            {
+                ViewBag.RestauranteId = new SelectList(restaurantes, "Id", "Nome", garcom.RestauranteId);
+                return View(garcom);
+            }
+
+            return HttpNotFound();
+        }
+        
         // GET: Garcoms/Delete/5
         public async Task<ActionResult> Delete(int? id)
         {
@@ -187,23 +225,46 @@ namespace CorsClient.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Garcom garcom = db.Garcoms.Find(id);
-            if (garcom == null)
-            {
-                return HttpNotFound();
-            }
-            return View(garcom);
-        }
 
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = APIUri;
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // HTTP GET
+                HttpResponseMessage response = await client.GetAsync("garcom/" + id.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    var tmpData = await response.Content.ReadAsStringAsync();
+                    var garcom = JsonConvert.DeserializeObject<Garcom>(tmpData);
+                    return View(garcom);
+                }
+            }
+
+            return HttpNotFound();
+        }
+        
         // POST: Garcoms/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
-            Garcom garcom = db.Garcoms.Find(id);
-            db.Garcoms.Remove(garcom);
-            db.SaveChanges();
-            return RedirectToAction("Index");
-        }*/
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = APIUri;
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // HTTP DELETE
+                HttpResponseMessage response = await client.DeleteAsync("garcom/" + id.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }                
+            }
+
+            return HttpNotFound();
+        }
     }
 }
