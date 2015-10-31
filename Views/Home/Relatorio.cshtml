@@ -1,0 +1,99 @@
+﻿@{
+    ViewBag.Title = "Relatorio";
+}
+
+<h2>Relatorios - Busca via AJAX (necessita ativar o Javascript e talvez só funciona no Chrome e navegadores atualizados)</h2>
+<br/>
+<div id="outputHeader"></div>
+<pre id="output"></pre>
+<br />
+
+@using (Html.BeginForm())
+{
+    <div class="form-horizontal">
+        <h4>Pedidos da Mesa</h4>
+        <hr />
+        
+        <div class="form-group">
+            <label class="col-md-4">Digite o número da mesa</label>
+            <div class="col-md-8">
+                @Html.TextBox("numeroMesa", "", new { @type = "number" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-4 col-md-8">
+                <input type="submit" value="Buscar" class="btn btn-default" id="getMesa"/>
+            </div>
+        </div>
+    </div>
+}
+
+<br />
+
+@using (Html.BeginForm())
+{
+    <div class="form-horizontal">
+        <h4>Pedidos do Garcom</h4>
+        <hr />
+
+        <div class="form-group">
+            <label class="col-md-2">Selecione o garcom</label>
+            <div class="col-md-10">
+                @Html.DropDownList("GarcomId", null, htmlAttributes: new { @class = "form-control" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Buscar" class="btn btn-default" id="getGarcom"/>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+    $(function () {
+
+        var urlPedidosGarcom = "@ViewBag.APIUrl" + "PedidosGarcom/";
+        var urlPedidosMesa = "@ViewBag.APIUrl" + "PedidosMesa/";
+
+        console.log(urlPedidosGarcom, urlPedidosMesa);
+
+        var getPedidosGarcom = function () {
+            var numGarcom = $("#GarcomId").val();
+            var txt = "Pedidos do Garcom: " + $("#GarcomId option:selected").text() + " -- GarcomId: " + numGarcom;
+            $("#outputHeader").text(txt);
+
+            var url = urlPedidosGarcom + numGarcom
+
+            $.get(url).always(showResponse);
+            $('body').scrollTop(0);
+            return false;
+        };
+
+        var getPedidosMesa = function () {
+            var numMesa = $("#numeroMesa").val();
+            var txt = "Pedidos da mesa " + numMesa;
+            $("#outputHeader").text(txt);
+
+            if (numMesa == "") {                
+                return false;
+            }
+
+            var url = urlPedidosMesa + numMesa;
+
+            $.get(url).always(showResponse);
+            $('body').scrollTop(0);
+            return false;
+        };
+
+        var showResponse = function (obj) {
+            $("#output").text(JSON.stringify(obj, null, 2));
+        };
+
+        $("#getGarcom").click(getPedidosGarcom);
+        $("#getMesa").click(getPedidosMesa);
+    })
+</script>
+
