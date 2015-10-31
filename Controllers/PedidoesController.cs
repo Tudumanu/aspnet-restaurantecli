@@ -147,7 +147,7 @@ namespace CorsClient.Controllers
             return HttpNotFound();
         }
 
-        /*
+        
         // GET: Pedidoes/Edit/5
         public async Task<ActionResult> Edit(int? id)
         {
@@ -155,15 +155,34 @@ namespace CorsClient.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Pedido pedido = db.Pedidoes.Find(id);
-            if (pedido == null)
-            {
-                return HttpNotFound();
-            }
-            ViewBag.GarcomId = new SelectList(db.Garcoms, "Id", "Nome", pedido.GarcomId);
-            return View(pedido);
-        }
 
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = APIUri;
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // HTTP GET
+                HttpResponseMessage response = await client.GetAsync("pedido/" + id.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    var tmpData = await response.Content.ReadAsStringAsync();
+                    var pedido = JsonConvert.DeserializeObject<Pedido>(tmpData);
+
+
+                    var garcons = await getGarcons();
+                    if (garcons != null)
+                    {
+                        ViewBag.GarcomId = new SelectList(garcons, "Id", "Nome", pedido.GarcomId);
+                        return View(pedido);
+                    }
+                }
+
+            }
+
+            return HttpNotFound();
+        }
+        
         // POST: Pedidoes/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -173,14 +192,34 @@ namespace CorsClient.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Entry(pedido).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            ViewBag.GarcomId = new SelectList(db.Garcoms, "Id", "Nome", pedido.GarcomId);
-            return View(pedido);
-        }
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = APIUri;
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                    // HTTP PUT
+                    var tmpData = JsonConvert.SerializeObject(pedido);
+                    HttpResponseMessage response = await client.PutAsync("pedido/" + pedido.Id.ToString(), new StringContent(tmpData, Encoding.UTF8, "application/json"));
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return RedirectToAction("Index");
+                    }
+                }
+
+                return HttpNotFound();
+            }
+
+            var garcons = await getGarcons();
+            if (garcons != null)
+            {
+                ViewBag.GarcomId = new SelectList(garcons, "Id", "Nome", pedido.GarcomId);
+                return View(pedido);
+            }
+
+            return HttpNotFound();
+        }
+        
         // GET: Pedidoes/Delete/5
         public async Task<ActionResult> Delete(int? id)
         {
@@ -188,23 +227,47 @@ namespace CorsClient.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Pedido pedido = db.Pedidoes.Find(id);
-            if (pedido == null)
-            {
-                return HttpNotFound();
-            }
-            return View(pedido);
-        }
 
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = APIUri;
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // HTTP GET
+                HttpResponseMessage response = await client.GetAsync("pedido/" + id.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    var tmpData = await response.Content.ReadAsStringAsync();
+                    var pedido = JsonConvert.DeserializeObject<Pedido>(tmpData);
+                    return View(pedido);
+                }
+
+            }
+
+            return HttpNotFound();
+        }
+        
         // POST: Pedidoes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
-            Pedido pedido = db.Pedidoes.Find(id);
-            db.Pedidoes.Remove(pedido);
-            db.SaveChanges();
-            return RedirectToAction("Index");
-        }*/
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = APIUri;
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // HTTP DELETE
+                HttpResponseMessage response = await client.DeleteAsync("pedido/" + id.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }
+            }
+
+            return HttpNotFound();
+        }
     }
 }
