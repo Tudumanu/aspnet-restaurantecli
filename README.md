@@ -1,10 +1,12 @@
 # A C# ASP.NET Client for an API
 
-Verifique o endere�o da API nas configura��es em *Web.config* > `key="APIUrl"`
+Verifique o endereço da API nas configurações em *Web.config* > `key="APIUrl"`
+
+ Para executar esta aplicação, é necessário descompactar a pasta Bin na raiz do projeto. A pasta pode ser obtida neste link: https://drive.google.com/file/d/0B3EhAlFCLZLgWW91RmE2anJVSEE/view?usp=sharing
 
 Principais arquivos criados:
 
-* Models/ > Garcom.cs, Pedido.cs, Restaurante.cs (para ajudar no data-binding, nenhum BD � utilizado)
+* Models/ > Garcom.cs, Pedido.cs, Restaurante.cs (para ajudar no data-binding, nenhum BD é utilizado)
 * Controllers/ > GarcomsController.cs, PedidoesController.cs, RestaurantesController.cs e HomeController.cs
 * Views/ > Todos arquivos
 
